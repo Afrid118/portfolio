@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container" style="max-width: 800px;">
+      
+      <div class="glass-card" style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+        <div class="avatar" style="width: 100px; height: 100px; font-size: 2.5rem; background: var(--aurora-purple);" id="profile-avatar"></div>
+        <div>
+          <h1 style="margin-bottom: 0.25rem;" id="profile-name">Loading...</h1>
+          <div style="color: var(--text-secondary); display: flex; align-items: center; gap: 1rem;">
+            <span id="profile-id"></span>
+            <span>&bull;</span>
+            <span id="profile-dept"></span>
+            <span id="profile-type" class="badge" style="background:var(--glass); color:var(--white); border:1px solid var(--glass-border);"></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div class="glass-card">
+          <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="settings"></i> Account Details</h3>
+          
+          <form id="profile-form">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-input" id="name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-input" id="phone" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="save-btn" style="width: 100%;">Save Changes</button>
+          </form>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="lock"></i> Security</h3>
+          
+          <form id="pwd-form">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" class="form-input" id="currentPassword" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-input" id="newPassword" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" class="form-input" id="confirmPassword" required>
+            </div>
+            <button type="submit" class="btn btn-secondary" id="pwd-btn" style="width: 100%;">Update Password</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAuth();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar();
+      loadProfile();
+    });
+
+    async function loadProfile() {
+      const res = await Auth.getMe();
+      if (res.ok) {
+        const u = res.data;
+        document.getElementById('profile-avatar').innerText = u.name.charAt(0).toUpperCase();
+        document.getElementById('profile-name').innerText = u.name;
+        document.getElementById('profile-id').innerText = u.studentId || u.facultyId || '-';
+        document.getElementById('profile-dept').innerText = u.department || '-';
+        document.getElementById('profile-type').innerText = u.userType.toUpperCase();
+
+        document.getElementById('name').value = u.name;
+        document.getElementById('email').value = u.email;
+        document.getElementById('phone').value = u.phone;
+        
+        // Update local storage just in case
+        setAuth(getToken(), u);
+      }
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.innerText = 'Saving...';
+
+      const data = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+      };
+
+      const res = await Auth.updateProfile(data);
+      btn.disabled = false;
+      btn.innerText = 'Save Changes';
+
+      if (res.ok) {
+        showToast('Profile updated successfully');
+        loadProfile();
+      } else {
+        showToast(res.data.message || 'Update failed', 'error');
+      }
+    });
+
+    document.getElementById('pwd-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const cpwd = document.getElementById('currentPassword').value;
+      const npwd = document.getElementById('newPassword').value;
+      const cnpwd = document.getElementById('confirmPassword').value;
+
+      if (npwd !== cnpwd) {
+        showToast('New passwords do not match', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('pwd-btn');
+      btn.disabled = true;
+      btn.innerText = 'Updating...';
+
+      const res = await Auth.changePassword({ oldPassword: cpwd, newPassword: npwd });
+      btn.disabled = false;
+      btn.innerText = 'Update Password';
+
+      if (res.ok) {
+        showToast('Password updated successfully');
+        document.getElementById('pwd-form').reset();
+      } else {
+        showToast(res.data.message || 'Update failed', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .register-card {
+      width: 100%;
+      max-width: 600px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media(max-width: 576px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div class="auth-container">
+    <div class="glass-card register-card">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="./index.html" style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.5rem; font-weight: 700; color: var(--white); text-decoration: none;">
+          <i data-lucide="radio" style="color: var(--aurora-purple);"></i> Lost &amp; Found Portal For Campus
+        </a>
+        <h2 style="margin-top: 1rem;">Create Account</h2>
+        <p style="color: var(--text-secondary);">Join your campus lost & found network</p>
+      </div>
+
+      <div class="tabs" id="type-tabs" style="justify-content: center;">
+        <div class="tab active" data-type="student">Student</div>
+        <div class="tab" data-type="faculty">Faculty</div>
+      </div>
+
+      <form id="register-form">
+        <input type="hidden" id="userType" value="student">
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-input" id="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="id-label">Student ID * <span style="font-size:0.7rem;color:var(--text-secondary)">(e.g. 24UECS1383)</span></label>
+            <input type="text" class="form-input" id="universityId" required>
+            <div class="error-msg" id="id-error">Invalid format</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select class="form-select" id="department" required>
+              <option value="">Select Department...</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+              <option value="Electrical">Electrical</option>
+              <option value="MBA">MBA</option>
+              <option value="MCA">MCA</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" id="year-group">
+            <label class="form-label">Year of Study *</label>
+            <select class="form-select" id="year">
+              <option value="">Select Year...</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+              <option value="PG">Post Graduate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-input" id="email" required>
+            <div class="error-msg" id="email-error">Invalid email format</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-input" id="phone" maxlength="10" required>
+            <div class="error-msg" id="phone-error">Invalid phone number</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" class="form-input" id="password" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password *</label>
+            <input type="password" class="form-input" id="confirmPassword" required>
+            <div class="error-msg" id="pwd-error">Passwords do not match</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">
+          Create Account
+        </button>
+      </form>
+
+      <div style="margin-top: 2rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary);">
+        Already have an account? <a href="./login.html" style="color: var(--aurora-cyan); text-decoration: none; font-weight: 500;">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script>
+    initLucide();
+
+    const tabs = document.querySelectorAll('.tab');
+    const typeInput = document.getElementById('userType');
+    const idLabel = document.getElementById('id-label');
+    const yearGroup = document.getElementById('year-group');
+    const yearInput = document.getElementById('year');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const type = tab.dataset.type;
+        typeInput.value = type;
+        
+        if (type === 'student') {
+          idLabel.innerHTML = 'Student ID * <span style="font-size:0.7rem;color:var(--text-secondary)">(e.g. 24UECS1383)</span>';
+          yearGroup.style.display = 'block';
+          yearInput.required = true;
+        } else {
+          idLabel.innerHTML = 'Faculty ID * <span style="font-size:0.7rem;color:var(--text-secondary)">(e.g. TTS3321)</span>';
+          yearGroup.style.display = 'none';
+          yearInput.required = false;
+        }
+      });
+    });
+
+    const form = document.getElementById('register-form');
+    
+    function validateInputs() {
+      let isValid = true;
+      const type = typeInput.value;
+      const uid = document.getElementById('universityId').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const pwd = document.getElementById('password').value;
+      const cpwd = document.getElementById('confirmPassword').value;
+
+      // ID regex: e.g. 24UECS1383 (2 digits + 2 to 5 letters + 3 to 4 digits)
+      const studentRe = /^\d{2}[A-Z]{2,5}\d{3,4}$/;
+      const facultyRe = /^[A-Z]{2,4}\d{3,5}$/;
+      
+      const idErr = document.getElementById('id-error');
+      if (type === 'student' && !studentRe.test(uid)) {
+        idErr.style.display = 'block'; isValid = false;
+      } else if (type === 'faculty' && !facultyRe.test(uid)) {
+        idErr.style.display = 'block'; isValid = false;
+      } else {
+        idErr.style.display = 'none';
+      }
+
+      if (!validateEmail(email)) {
+        document.getElementById('email-error').style.display = 'block'; isValid = false;
+      } else document.getElementById('email-error').style.display = 'none';
+
+      if (!validatePhone(phone)) {
+        document.getElementById('phone-error').style.display = 'block'; isValid = false;
+      } else document.getElementById('phone-error').style.display = 'none';
+
+      if (pwd !== cpwd) {
+        document.getElementById('pwd-error').style.display = 'block'; isValid = false;
+      } else document.getElementById('pwd-error').style.display = 'none';
+
+      return isValid;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!validateInputs()) return;
+
+      const regType = document.getElementById('userType').value;
+      const uid = document.getElementById('universityId').value;
+      const data = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        phone: document.getElementById('phone').value,
+        userType: regType,
+        department: document.getElementById('department').value,
+      };
+      if (regType === 'student') {
+        data.studentId = uid;
+        data.year = document.getElementById('year').value;
+      } else {
+        data.facultyId = uid;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Creating...';
+
+      const res = await Auth.register(data);
+      
+      btn.disabled = false;
+      btn.innerHTML = 'Create Account';
+
+      if (res.ok) {
+        showToast('Registration successful! Please login.');
+        setTimeout(() => window.location.href = './login.html', 1500);
+      } else {
+        showToast(res.data.message || 'Registration failed', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

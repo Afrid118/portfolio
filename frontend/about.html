@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container" style="max-width: 800px;">
+      
+      <div style="text-align: center; margin-bottom: 3rem;">
+        <i data-lucide="radio" style="width: 64px; height: 64px; color: var(--aurora-purple); margin-bottom: 1rem;"></i>
+        <h1>About Lost &amp; Found Portal For Campus</h1>
+        <p style="color: var(--text-secondary); font-size: 1.125rem;">Connecting students to reunite lost items with their rightful owners.</p>
+      </div>
+
+      <div class="glass-card" style="margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem;">The Problem</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Every semester, hundreds of items are lost on campus. From water bottles and notebooks to wallets and laptops. The traditional lost and found boxes are scattered across different departments, making it nearly impossible to track down missing items.</p>
+        
+        <h2 style="margin-bottom: 1rem; margin-top: 2rem;">Our Solution</h2>
+        <p style="color: var(--text-secondary);">Lost &amp; Found Portal For Campus centralizes the lost and found process into a single, digital platform. It allows students and faculty to easily report lost or found items, search a global campus database, and securely communicate to return items.</p>
+      </div>
+
+      <h2 style="margin-bottom: 1.5rem; text-align: center;">How It Works</h2>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="glass-card" style="text-align: center;">
+          <i data-lucide="search" style="width: 32px; height: 32px; color: var(--aurora-purple); margin-bottom: 1rem;"></i>
+          <h3 style="margin-bottom: 0.5rem;">Report</h3>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">Submit a detailed report with photos of what you lost or found.</p>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <i data-lucide="shield-check" style="width: 32px; height: 32px; color: var(--aurora-cyan); margin-bottom: 1rem;"></i>
+          <h3 style="margin-bottom: 0.5rem;">Verify</h3>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">Admins review reports. Claimants verify ownership securely.</p>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <i data-lucide="heart-handshake" style="width: 32px; height: 32px; color: var(--aurora-green); margin-bottom: 1rem;"></i>
+          <h3 style="margin-bottom: 0.5rem;">Reunite</h3>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">Meet safely on campus to return the item to its owner.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => initNavbar());
+  </script>
+</body>
+</html>

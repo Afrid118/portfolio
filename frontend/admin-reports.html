@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Reports - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .admin-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    .admin-table th { padding: 1rem; border-bottom: 1px solid var(--glass-border); color: var(--text-secondary); font-weight: 500; }
+    .admin-table td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    .admin-table tr:hover { background: rgba(255,255,255,0.02); }
+    .action-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); transition: color 0.2s; padding: 0.25rem; }
+    .action-btn:hover { color: var(--white); }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <aside class="sidebar" id="admin-sidebar">
+    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin: 1rem 1rem 0.5rem;">Management</div>
+    <a href="./admin-dashboard.html" class="sidebar-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="./admin-reports.html" class="sidebar-link active"><i data-lucide="file-text"></i> Reports</a>
+    <a href="./admin-claims.html" class="sidebar-link"><i data-lucide="shield-check"></i> Claims</a>
+    <a href="./admin-users.html" class="sidebar-link"><i data-lucide="users"></i> Users</a>
+  </aside>
+
+  <div class="admin-main main-content" style="padding-top: 70px;">
+    <div class="container" style="max-width: 100%;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">Manage Reports</h1>
+        <div style="display: flex; gap: 1rem;">
+          <select class="form-select" id="filter-status" style="width: 150px;">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="claim_requested">Claim Requested</option>
+            <option value="claim_approved">Claim Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="returned">Returned</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select class="form-select" id="filter-type" style="width: 150px;">
+            <option value="">All Types</option>
+            <option value="lost">Lost</option>
+            <option value="found">Found</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow-x: auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Item Info</th>
+              <th>Type</th>
+              <th>Reporter</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="7" style="text-align:center;"><div class="spinner" style="margin: 2rem auto;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAdmin();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar('admin-reports');
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status')) document.getElementById('filter-status').value = urlParams.get('status');
+      if (urlParams.get('type')) document.getElementById('filter-type').value = urlParams.get('type');
+      
+      loadData();
+
+      document.getElementById('filter-status').addEventListener('change', loadData);
+      document.getElementById('filter-type').addEventListener('change', loadData);
+    });
+
+    async function loadData() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><div class="spinner" style="margin: 2rem auto;"></div></td></tr>';
+
+      const status = document.getElementById('filter-status').value;
+      const type = document.getElementById('filter-type').value;
+      
+      const params = { sort: 'newest' };
+      if (status) params.status = status;
+      if (type) params.type = type;
+
+      const res = await Items.adminGetAll(params);
+      
+      if (res.ok) {
+        if (res.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No reports found matching filters.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = res.data.map(item => `
+          <tr>
+            <td>
+              <img src="${getImageUrl(item.photo || item.photoUrl)}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;">
+            </td>
+            <td>
+              <div style="font-weight: 500;">${truncate(item.itemName, 30)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: monospace;">ID: ${item._id.substring(item._id.length - 8)}</div>
+            </td>
+            <td>${getStatusBadge(item.type)}</td>
+            <td>
+              <div>${item.reporter?.name || 'Deleted user'}</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">${item.reporter?.department || '-'}</div>
+            </td>
+            <td>${formatDate(item.createdAt)}</td>
+            <td>${getStatusBadge(item.status)}</td>
+            <td>
+              <div style="display:flex; gap:0.5rem;">
+                <a href="./item-details.html?id=${item._id}" class="action-btn" title="View"><i data-lucide="eye" style="width:18px;"></i></a>
+                ${item.status === 'pending' ? `
+                  <button class="action-btn" title="Approve" style="color:var(--aurora-cyan);" onclick="updateStatus('${item._id}', 'approved')"><i data-lucide="check-circle" style="width:18px;"></i></button>
+                  <button class="action-btn" title="Reject" style="color:var(--danger);" onclick="rejectItem('${item._id}')"><i data-lucide="x-circle" style="width:18px;"></i></button>
+                ` : ''}
+                ${(item.status === 'approved' || item.status === 'claim_approved') ? `
+                  <button class="action-btn" title="Mark Returned" style="color:var(--aurora-purple);" onclick="markReturned('${item._id}')"><i data-lucide="package-check" style="width:18px;"></i></button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        initLucide();
+      } else {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--danger);">Failed to load data.</td></tr>';
+      }
+    }
+
+    async function updateStatus(id, status) {
+      if(!confirm(`Are you sure you want to mark this as ${status}?`)) return;
+      const res = await Items.adminUpdateStatus(id, { status });
+      if (res.ok) {
+        showToast(`Status updated to ${status}`);
+        loadData();
+      } else {
+        showToast(res.data.message || 'Update failed', 'error');
+      }
+    }
+
+    async function rejectItem(id) {
+      const notes = prompt("Enter rejection reason (optional):");
+      if (notes === null) return;
+      const res = await Items.adminUpdateStatus(id, { status: 'rejected', adminNote: notes });
+      if (res.ok) {
+        showToast('Report rejected');
+        loadData();
+      } else {
+        showToast(res.data.message || 'Action failed', 'error');
+      }
+    }
+
+    async function markReturned(id) {
+      if (!confirm('Mark this item as returned?')) return;
+      const notes = prompt('Return notes (optional):');
+      if (notes === null) return;
+      const res = await Items.adminReturn(id, { notes });
+      if (res.ok) {
+        showToast('Item marked as returned');
+        loadData();
+      } else {
+        showToast(res.data.message || 'Could not record the return', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

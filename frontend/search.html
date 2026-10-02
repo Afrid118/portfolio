@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Items - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .search-layout { display: flex; gap: 2rem; }
+    .filters-panel { width: 300px; flex-shrink: 0; }
+    .results-panel { flex: 1; }
+    @media(max-width: 992px) {
+      .search-layout { flex-direction: column; }
+      .filters-panel { width: 100%; }
+    }
+    .filter-group { margin-bottom: 1.5rem; }
+    .filter-group label { display: block; font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container">
+      
+      <div style="margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 1rem;">Search Global Database</h1>
+        <div class="search-bar" style="max-width: 600px;">
+          <i data-lucide="search"></i>
+          <input type="text" class="form-input" id="search-input" placeholder="Search by item name, description, or location..." style="font-size: 1.125rem; padding: 1rem 1rem 1rem 3rem;">
+        </div>
+      </div>
+
+      <div class="search-layout">
+        <!-- Filters -->
+        <div class="filters-panel glass-card" style="height: fit-content;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0;">Filters</h3>
+            <button id="clear-filters" style="background:none; border:none; color:var(--aurora-cyan); cursor:pointer; font-size:0.875rem;">Clear All</button>
+          </div>
+
+          <div class="filter-group">
+            <label>Type</label>
+            <select class="form-select" id="filter-type">
+              <option value="">All Types</option>
+              <option value="lost">Lost</option>
+              <option value="found">Found</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Category</label>
+            <select class="form-select" id="filter-category">
+              <option value="">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Wallets & Cards">Wallets & Cards</option>
+              <option value="Keys">Keys</option>
+              <option value="Bags & Backpacks">Bags &amp; Backpacks</option>
+              <option value="Clothing & Accessories">Clothing &amp; Accessories</option>
+              <option value="Books & Notebooks">Books &amp; Notebooks</option>
+              <option value="Water Bottles & Thermoses">Water Bottles &amp; Thermoses</option>
+              <option value="Umbrellas">Umbrellas</option>
+              <option value="Jewelry & Watches">Jewelry &amp; Watches</option>
+              <option value="Eyewear">Eyewear</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Sort By</label>
+            <select class="form-select" id="sort-by">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="search-submit" style="width: 100%;">
+            <i data-lucide="search" style="width: 18px;"></i> Search
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div class="results-panel">
+          <div style="margin-bottom: 1rem; color: var(--text-secondary);" id="results-count">Loading results...</div>
+          <div class="items-grid" id="results-grid">
+            <div class="spinner" style="grid-column: 1/-1; margin: 3rem auto;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAuth();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar('search');
+      
+      // Auto-populate filter from URL if present
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('type')) document.getElementById('filter-type').value = urlParams.get('type');
+
+      loadResults();
+      
+      const searchInput = document.getElementById('search-input');
+      const filterType = document.getElementById('filter-type');
+      const filterCat = document.getElementById('filter-category');
+      const sortBy = document.getElementById('sort-by');
+      const clearBtn = document.getElementById('clear-filters');
+
+      document.getElementById('search-submit').addEventListener('click', loadResults);
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          loadResults();
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        filterType.value = '';
+        filterCat.value = '';
+        sortBy.value = 'newest';
+        loadResults();
+      });
+    });
+
+    async function loadResults() {
+      const grid = document.getElementById('results-grid');
+      const countEl = document.getElementById('results-count');
+      grid.innerHTML = '<div class="spinner" style="grid-column: 1/-1; margin: 3rem auto;"></div>';
+
+      const params = { status: 'approved' };
+      
+      const search = document.getElementById('search-input').value.trim();
+      if (search) params.search = search;
+      
+      const type = document.getElementById('filter-type').value;
+      if (type) params.type = type;
+      
+      const cat = document.getElementById('filter-category').value;
+      if (cat) params.category = cat;
+      
+      const sort = document.getElementById('sort-by').value;
+      params.sort = sort;
+
+      const res = await Items.getAll(params);
+      
+      if (res.ok) {
+        const items = res.data;
+        countEl.innerText = `Showing ${items.length} result${items.length !== 1 ? 's' : ''}`;
+        
+        if (items.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+              <i data-lucide="search-x"></i>
+              <h3>No items found</h3>
+              <p>New reports appear here as soon as they are published. Check My Reports for your submissions.</p>
+            </div>
+          `;
+        } else {
+          grid.innerHTML = items.map(item => `
+            <div class="glass-card item-card">
+              <img src="${getImageUrl(item.photo || item.photoUrl)}" class="item-card-img" alt="${item.itemName}">
+              <div class="item-card-header">
+                <div class="item-card-title" title="${item.itemName}">${item.itemName}</div>
+                ${getStatusBadge(item.type)}
+              </div>
+              <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+                <div style="display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                  <i data-lucide="tag" style="width:14px;"></i> ${item.category}
+                </div>
+                <div style="display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                  <i data-lucide="map-pin" style="width:14px;"></i> ${truncate(item.location, 25)}
+                </div>
+                <div style="display:flex; align-items:center; gap:0.25rem;">
+                  <i data-lucide="clock" style="width:14px;"></i> ${timeAgo(item.date)}
+                </div>
+              </div>
+              <a href="./item-details.html?id=${item._id}" class="btn btn-secondary" style="width:100%;">View Details</a>
+            </div>
+          `).join('');
+        }
+        initLucide();
+      } else {
+        countEl.innerText = 'Error loading results.';
+        grid.innerHTML = '';
+      }
+    }
+  </script>
+</body>
+</html>

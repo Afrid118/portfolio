@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .auth-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .auth-visual {
+      flex: 1;
+      display: none;
+      position: relative;
+      background: var(--midnight);
+      overflow: hidden;
+    }
+    @media(min-width: 992px) {
+      .auth-visual {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 4rem;
+      }
+    }
+    .auth-form-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--midnight);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+    }
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 2rem;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div class="auth-layout">
+    <div class="auth-visual">
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 30% 50%, var(--aurora-purple), transparent 50%), radial-gradient(circle at 70% 80%, var(--aurora-cyan), transparent 50%); opacity: 0.15;"></div>
+      <div style="position: relative; z-index: 10;">
+        <h1 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; line-height: 1.2;">Campus<br><span style="color: var(--aurora-cyan);">Echo</span></h1>
+        <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 400px;">The smart way to find what you've lost and return what you've found across campus.</p>
+        
+        <div style="margin-top: 4rem; display: flex; gap: 2rem;">
+          <div class="glass-card" style="padding: 1.5rem; text-align: center; width: 140px;">
+            <i data-lucide="search" style="width: 32px; height: 32px; color: var(--aurora-purple); margin-bottom: 1rem;"></i>
+            <div style="font-weight: 600;">Find Items</div>
+          </div>
+          <div class="glass-card" style="padding: 1.5rem; text-align: center; width: 140px; margin-top: 2rem;">
+            <i data-lucide="heart-handshake" style="width: 32px; height: 32px; color: var(--aurora-green); margin-bottom: 1rem;"></i>
+            <div style="font-weight: 600;">Return Joy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="auth-form-container">
+      <div class="glass-card auth-card">
+        <a href="./index.html" class="auth-logo">
+          <i data-lucide="radio" style="color: var(--aurora-purple);"></i>
+          Lost &amp; Found Portal For Campus
+        </a>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Sign in to your account</p>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="email" required placeholder="Enter your email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              Password
+              <a href="#" style="color: var(--aurora-cyan); text-decoration: none; font-size: 0.875rem;">Forgot?</a>
+            </label>
+            <div style="position: relative;">
+              <input type="password" class="form-input" id="password" required placeholder="Enter your password">
+              <button type="button" id="toggle-pwd" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                <i data-lucide="eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="remember" style="accent-color: var(--aurora-purple);">
+            <label for="remember" style="font-size: 0.875rem; color: var(--text-secondary); cursor: pointer;">Remember me</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">
+            Sign In
+            <i data-lucide="arrow-right" style="width: 18px;"></i>
+          </button>
+        </form>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary);">
+          Don't have an account? <a href="./register.html" style="color: var(--aurora-cyan); text-decoration: none; font-weight: 500;">Register here</a>
+        </div>
+        
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.75rem;">
+          <a href="./admin-login.html" style="color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i data-lucide="shield" style="width: 14px;"></i> Admin Access
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script>
+    initLucide();
+    
+    // Toggle password
+    const pwdInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('toggle-pwd');
+    toggleBtn.addEventListener('click', () => {
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        toggleBtn.innerHTML = '<i data-lucide="eye-off"></i>';
+      } else {
+        pwdInput.type = 'password';
+        toggleBtn.innerHTML = '<i data-lucide="eye"></i>';
+      }
+      initLucide();
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('submit-btn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Signing in...';
+
+      const res = await Auth.login({ email, password });
+      
+      btn.disabled = false;
+      btn.innerHTML = 'Sign In <i data-lucide="arrow-right" style="width: 18px;"></i>';
+      initLucide();
+
+      if (res.ok) {
+        setAuth(res.data.token, res.data.data);
+        if (res.data.data && res.data.data.userType === 'admin') {
+          window.location.href = './admin-dashboard.html';
+        } else {
+          window.location.href = './dashboard.html';
+        }
+      } else {
+        showToast(res.data.message || 'Login failed', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

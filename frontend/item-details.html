@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Item Details - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .hero-img { width: 100%; height: 400px; object-fit: cover; border-radius: 16px; margin-bottom: 2rem; background: var(--dark-surface); }
+    .details-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+    @media(max-width: 992px) { .details-grid { grid-template-columns: 1fr; } }
+    .info-list { list-style: none; padding: 0; margin: 0; }
+    .info-list li { display: flex; padding: 1rem 0; border-bottom: 1px solid var(--glass-border); }
+    .info-list li:last-child { border-bottom: none; }
+    .info-label { width: 140px; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+    .info-value { flex: 1; font-weight: 500; }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container" id="loading-container">
+      <div class="spinner" style="margin: 5rem auto; width: 40px; height: 40px;"></div>
+    </div>
+    
+    <div class="container" id="content-container" style="display: none;">
+      
+      <img src="" id="item-image" class="hero-img" alt="Item Image">
+      
+      <div class="details-grid">
+        <!-- Main details -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div id="item-status"></div>
+            <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.875rem;" id="item-id"></div>
+          </div>
+          
+          <h1 style="font-size: 2.5rem; margin-bottom: 1.5rem;" id="item-name">Item Name</h1>
+          
+          <div class="glass-card" style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="align-left"></i> Description</h3>
+            <p style="color: var(--text-secondary); white-space: pre-line;" id="item-desc"></p>
+          </div>
+          
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="list"></i> Details</h3>
+            <ul class="info-list">
+              <li><div class="info-label"><i data-lucide="tag"></i> Category</div><div class="info-value" id="item-cat"></div></li>
+              <li><div class="info-label"><i data-lucide="box"></i> Brand</div><div class="info-value" id="item-brand"></div></li>
+              <li><div class="info-label"><i data-lucide="palette"></i> Color</div><div class="info-value" id="item-color"></div></li>
+              <li><div class="info-label"><i data-lucide="calendar"></i> Date</div><div class="info-value" id="item-date"></div></li>
+              <li><div class="info-label"><i data-lucide="clock"></i> Time</div><div class="info-value" id="item-time"></div></li>
+              <li><div class="info-label"><i data-lucide="map-pin"></i> Location</div><div class="info-value" id="item-loc"></div></li>
+              <li><div class="info-label"><i data-lucide="map"></i> Specific Area</div><div class="info-value" id="item-sloc"></div></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Sidebar Actions & Reporter Info -->
+        <div>
+          <div class="glass-card" style="margin-bottom: 1.5rem; background: rgba(34, 211, 238, 0.05); border-color: rgba(34, 211, 238, 0.2);" id="action-card">
+            <h3 style="margin-bottom: 1rem;" id="action-title">Take Action</h3>
+            <div id="action-content">
+              <!-- Dynamically populated buttons -->
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="user"></i> Posted By</h3>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+              <div class="avatar" style="width: 50px; height: 50px; font-size: 1.25rem;" id="reporter-initial"></div>
+              <div>
+                <div style="font-weight: 600;" id="reporter-name"></div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);" id="reporter-dept"></div>
+              </div>
+            </div>
+            <div id="contact-info" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                <i data-lucide="mail" style="width: 16px;"></i> <span id="reporter-email"></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                <i data-lucide="phone" style="width: 16px;"></i> <span id="reporter-phone"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Claim Modal -->
+  <div class="modal-overlay" id="claim-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="margin:0; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="shield-check" style="color:var(--aurora-cyan);"></i> Claim Item</h3>
+        <button class="close-modal" onclick="closeClaimModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.875rem;">Please provide specific details to prove ownership of this item. E.g., serial number, exact contents, scratches, or PIN.</p>
+        <form id="claim-form">
+          <div class="form-group">
+            <label class="form-label">Proof of Ownership *</label>
+            <textarea class="form-textarea" id="claim-reason" required placeholder="Describe unique features only the owner would know..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact Phone</label>
+            <input type="tel" class="form-input" id="claim-phone" required>
+          </div>
+          <input type="hidden" id="claim-email">
+          <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeClaimModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="claim-submit-btn">Submit Claim Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAuth();
+    
+    let currentItem = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar();
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const itemId = urlParams.get('id');
+      
+      if (!itemId) {
+        window.location.href = './dashboard.html';
+        return;
+      }
+
+      const res = await Items.getById(itemId);
+      document.getElementById('loading-container').style.display = 'none';
+      
+      if (res.ok) {
+        currentItem = res.data;
+        populateData(currentItem);
+        document.getElementById('content-container').style.display = 'block';
+        initLucide();
+      } else {
+        showToast('Item not found', 'error');
+        setTimeout(() => window.location.href = './dashboard.html', 1500);
+      }
+    });
+
+    function populateData(item) {
+      const user = getUser();
+      const isOwner = item.reporter._id === user._id;
+      const isAdmin = user.userType === 'admin';
+
+      document.getElementById('item-image').src = getImageUrl(item.photo || item.photoUrl);
+      document.getElementById('item-status').innerHTML = getStatusBadge(item.type) + ' ' + getStatusBadge(item.status);
+      document.getElementById('item-id').innerText = `ID: ${item.itemId || item._id.substring(item._id.length - 8).toUpperCase()}`;
+      document.getElementById('item-name').innerText = item.itemName;
+      document.getElementById('item-desc').innerText = item.description;
+      
+      document.getElementById('item-cat').innerText = item.category || '-';
+      document.getElementById('item-brand').innerText = item.brand || '-';
+      document.getElementById('item-color').innerText = item.color || '-';
+      document.getElementById('item-date').innerText = formatDate(item.date);
+      document.getElementById('item-time').innerText = formatTime(item.time) || '-';
+      document.getElementById('item-loc').innerText = item.location || '-';
+      document.getElementById('item-sloc').innerText = item.specificLocation || '-';
+
+      // Reporter info
+      document.getElementById('reporter-name').innerText = item.reporter.name;
+      document.getElementById('reporter-initial').innerText = item.reporter.name.charAt(0).toUpperCase();
+      document.getElementById('reporter-dept').innerText = item.reporter.department || item.reporter.userType;
+      
+      if (isOwner || isAdmin || item.status === 'approved') {
+        document.getElementById('contact-info').style.display = 'block';
+        document.getElementById('reporter-email').innerText = item.contactEmail || item.reporter.email;
+        document.getElementById('reporter-phone').innerText = item.contactPhone || item.reporter.phone;
+      }
+
+      // Action card logic
+      const actionContent = document.getElementById('action-content');
+      const actionTitle = document.getElementById('action-title');
+
+      if (isOwner) {
+        actionTitle.innerText = 'Your Report';
+        actionContent.innerHTML = `
+          <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1rem;">You posted this report. You can manage it from your dashboard.</p>
+          <a href="./my-reports.html" class="btn btn-primary" style="width:100%;">View My Reports</a>
+        `;
+      } else if (isAdmin) {
+        actionTitle.innerText = 'Admin Actions';
+        actionContent.innerHTML = `
+          <a href="./admin-reports.html" class="btn btn-primary" style="width:100%;">Manage in Admin Panel</a>
+        `;
+      } else if (item.status === 'approved') {
+        if (item.type === 'found') {
+          actionTitle.innerText = 'Is this yours?';
+          actionContent.innerHTML = `
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1rem;">If you are the owner, file a claim to get in touch with the finder securely.</p>
+            <button class="btn btn-primary" style="width:100%;" onclick="openClaimModal()">Claim This Item</button>
+          `;
+        } else if (item.type === 'lost') {
+          actionTitle.innerText = 'Did you find this?';
+          actionContent.innerHTML = `
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1rem;">If you found this item, please submit a found report or contact the owner directly using the details below.</p>
+            <a href="./report-found.html" class="btn btn-success" style="width:100%; color: var(--midnight);">I Found This Item</a>
+          `;
+        }
+      } else {
+        document.getElementById('action-card').style.display = 'none';
+      }
+    }
+
+    function openClaimModal() {
+      document.getElementById('claim-phone').value = getUser().phone || '';
+      document.getElementById('claim-email').value = getUser().email || '';
+      document.getElementById('claim-modal').classList.add('active');
+    }
+    function closeClaimModal() {
+      document.getElementById('claim-modal').classList.remove('active');
+      document.getElementById('claim-form').reset();
+    }
+
+    document.getElementById('claim-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('claim-submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Submitting...';
+
+      const data = {
+        itemId: currentItem._id,
+        reason: document.getElementById('claim-reason').value,
+        contactEmail: document.getElementById('claim-email').value,
+        contactPhone: document.getElementById('claim-phone').value
+      };
+
+      const res = await Claims.create(data);
+      btn.disabled = false;
+      btn.innerHTML = 'Submit Claim Request';
+
+      if (res.ok) {
+        showToast('Claim submitted successfully! You will be notified when it is reviewed.');
+        closeClaimModal();
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        showToast(res.data.message || 'Failed to submit claim', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

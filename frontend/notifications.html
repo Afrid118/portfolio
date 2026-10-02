@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .notif-item {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      gap: 1.5rem;
+      transition: background 0.2s ease;
+    }
+    .notif-item:hover { background: rgba(255,255,255,0.02); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item.unread { background: rgba(34, 211, 238, 0.05); }
+    .notif-icon {
+      width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .notif-icon.match { background: rgba(139, 92, 246, 0.2); color: var(--aurora-purple); }
+    .notif-icon.claim { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+    .notif-icon.status { background: rgba(34, 211, 238, 0.2); color: var(--aurora-cyan); }
+  </style>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container" style="max-width: 800px;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">Notifications</h1>
+        <button class="btn btn-secondary" onclick="markAllRead()">
+          <i data-lucide="check-check"></i> Mark all as read
+        </button>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;" id="notif-list">
+        <div class="spinner" style="margin: 3rem auto;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAuth();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar();
+      loadNotifications();
+    });
+
+    async function loadNotifications() {
+      const res = await Notifications.getAll();
+      const list = document.getElementById('notif-list');
+      
+      if (res.ok) {
+        if (res.data.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <i data-lucide="bell-off"></i>
+              <h3>You're all caught up!</h3>
+              <p>No new notifications at the moment.</p>
+            </div>
+          `;
+        } else {
+          list.innerHTML = res.data.map(n => `
+            <div class="notif-item ${!n.read ? 'unread' : ''}" onclick="markRead('${n._id}', '${n.relatedItem || ''}')" style="cursor:pointer;">
+              <div class="notif-icon ${n.type}">
+                <i data-lucide="${getIconForType(n.type)}"></i>
+              </div>
+              <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
+                  <h4 style="margin: 0;">${n.title}</h4>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">${timeAgo(n.createdAt)}</span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">${n.message}</p>
+              </div>
+              ${!n.read ? '<div style="width:10px; height:10px; border-radius:50%; background:var(--aurora-cyan); align-self:center;"></div>' : ''}
+            </div>
+          `).join('');
+        }
+        initLucide();
+      }
+    }
+
+    function getIconForType(type) {
+      if(type === 'match') return 'sparkles';
+      if(type === 'claim') return 'shield-alert';
+      return 'info';
+    }
+
+    async function markRead(id, itemId) {
+      await Notifications.markRead(id);
+      if (itemId) window.location.href = `./item-details.html?id=${itemId}`;
+      else loadNotifications();
+    }
+
+    async function markAllRead() {
+      await Notifications.markAllRead();
+      loadNotifications();
+      // Update badge via navbar init re-run or dom manipulation
+      const badge = document.getElementById('nav-notif-badge');
+      if(badge) badge.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

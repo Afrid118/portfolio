@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Lost &amp; Found Portal For Campus</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="aurora-bg">
+
+  <div id="navbar"></div>
+
+  <div class="main-content">
+    <div class="container">
+      
+      <!-- Hero -->
+      <div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(to right, rgba(11,16,32,0.8), rgba(11,16,32,0.4)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80') center/cover; border: 1px solid var(--aurora-purple);">
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;" id="welcome-text">Welcome back!</h1>
+        <p style="color: var(--text-secondary); max-width: 600px;">Quickly report items you've lost or found, and help keep our campus connected.</p>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+          <a href="./report-lost.html" class="btn btn-primary">
+            <i data-lucide="search"></i> Report Lost Item
+          </a>
+          <a href="./report-found.html" class="btn btn-secondary">
+            <i data-lucide="plus-circle"></i> Report Found Item
+          </a>
+          <a href="./search.html" class="btn btn-secondary">
+            <i data-lucide="search-code"></i> Browse Items
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="glass-card stat-card">
+          <div class="label">My Lost Reports</div>
+          <div class="value" id="stat-lost">-</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="label">My Found Reports</div>
+          <div class="value" style="color: var(--aurora-green);" id="stat-found">-</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="label">Possible Matches</div>
+          <div class="value" style="color: var(--warning);" id="stat-matches">-</div>
+        </div>
+        <div class="glass-card stat-card">
+          <div class="label">Items Returned</div>
+          <div class="value" style="color: var(--aurora-purple);" id="stat-returned">-</div>
+        </div>
+      </div>
+
+      <!-- Recent Community Items -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem;">Recent Activity</h2>
+          <p style="color: var(--text-secondary);">Latest approved reports from the community</p>
+        </div>
+        <a href="./search.html" style="color: var(--aurora-cyan); text-decoration: none; font-size: 0.875rem;">View all &rarr;</a>
+      </div>
+
+      <div id="recent-items-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; min-height: 200px;">
+        <div class="spinner" style="margin: auto;"></div>
+      </div>
+
+      <!-- Safety Banner -->
+      <div class="glass-card" style="margin-top: 3rem; background: rgba(34, 211, 238, 0.05); border-color: rgba(34, 211, 238, 0.2); display: flex; gap: 1.5rem; align-items: center;">
+        <div style="background: rgba(34, 211, 238, 0.1); padding: 1rem; border-radius: 50%;">
+          <i data-lucide="shield-check" style="color: var(--aurora-cyan); width: 32px; height: 32px;"></i>
+        </div>
+        <div>
+          <h3 style="margin-bottom: 0.25rem;">Safety First</h3>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">Always meet in public, well-lit campus areas when returning items. Do not share passwords or sensitive personal info. <a href="./safety.html" style="color: var(--aurora-cyan);">Read our guidelines</a></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/navbar.js"></script>
+  <script>
+    requireAuth();
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initNavbar('dashboard');
+      
+      const user = getUser();
+      if(user) document.getElementById('welcome-text').innerText = `Welcome back, ${user.name.split(' ')[0]}!`;
+
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      // Load stats
+      const myItemsRes = await Items.getMy();
+      if (myItemsRes.ok) {
+        const items = myItemsRes.data;
+        const lost = items.filter(i => i.type === 'lost').length;
+        const found = items.filter(i => i.type === 'found').length;
+        const returned = items.filter(i => i.status === 'returned').length;
+        
+        document.getElementById('stat-lost').innerText = lost;
+        document.getElementById('stat-found').innerText = found;
+        document.getElementById('stat-returned').innerText = returned;
+        
+        // Count possible matches (simplified for dashboard)
+        let matchesCount = 0;
+        document.getElementById('stat-matches').innerText = matchesCount; // To be expanded if API supports aggregate matches
+      }
+
+      // Load recent items
+      const recentRes = await Items.getAll({ status: 'approved', limit: 6, sort: 'newest' });
+      const container = document.getElementById('recent-items-container');
+      
+      if (recentRes.ok && recentRes.data.length > 0) {
+        container.innerHTML = recentRes.data.map(item => `
+          <div class="glass-card item-card">
+            <img src="${getImageUrl(item.photo || item.photoUrl)}" class="item-card-img" alt="${item.itemName}">
+            <div class="item-card-header">
+              <div class="item-card-title" title="${item.itemName}">${item.itemName}</div>
+              ${getStatusBadge(item.type)}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+              <div style="display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                <i data-lucide="map-pin" style="width:14px;"></i> ${truncate(item.location, 25)}
+              </div>
+              <div style="display:flex; align-items:center; gap:0.25rem;">
+                <i data-lucide="clock" style="width:14px;"></i> ${timeAgo(item.date)}
+              </div>
+            </div>
+            <a href="./item-details.html?id=${item._id}" class="btn btn-secondary" style="width:100%;">View Details</a>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i data-lucide="inbox"></i>
+            <h3>No recent items</h3>
+            <p>The campus feed is currently quiet.</p>
+          </div>
+        `;
+      }
+      initLucide();
+    }
+  </script>
+</body>
+</html>
